@@ -160,7 +160,7 @@ if __name__ == '__main__':
     for i in range(2,epochs*N):
         ind = np.random.randint(N)
         eta = 0.1 / (i-1)
-        for t in neyo:
+        for t in randslt:
             barw -= eta / (i-1) * gBirank(barw,FEATURES[ind],LABELS[ind],FEATURES[t],LABELS[t])
             norm = np.linalg.norm(barw)
         if norm > R:
