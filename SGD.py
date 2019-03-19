@@ -125,3 +125,20 @@ if __name__ == '__main__':
             er = pairer(AUC, w, FEATURES, LABELS)
             print(w)
             print('iteration: %d empirical risk: %f' %(i,er))
+            
+            
+    # Wei: Run SGD for AUC with random selection among all epoches
+    w = np.zeros(d)
+    randselec = [np.random.randint(N)]
+    for i in range(2,epochs*N):
+        ind = np.random.randint(N)
+        for t in neyo:
+            w -= eta / (i-1) * gAUC(w,FEATURES[ind],LABELS[ind],FEATURES[t],LABELS[t])
+            norm = np.linalg.norm(w)
+            if norm > R:
+                w = w / norm * R
+        if i % 100 == 0:
+            er = pairer(AUC, w, FEATURES, LABELS)
+            print(w)
+            print('iteration: %d empirical risk: %f' %(i,er))
+        randselec.append(ind)
