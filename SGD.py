@@ -116,10 +116,9 @@ if __name__ == '__main__':
     for i in range(2,epochs*N):
         for t in range(i):
             w -= eta / (i-1) * gAUC(w,FEATURES[i%N],LABELS[i%N],FEATURES[t%N],LABELS[t%N])
-
-        norm = np.linalg.norm(w)
-        if norm > R:
-            w = w / norm * R
+            norm = np.linalg.norm(w)
+            if norm > R:
+                w = w / norm * R
 
         if i % 100 == 0:
             er = pairer(AUC, w, FEATURES, LABELS)
