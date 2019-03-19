@@ -108,17 +108,17 @@ def Birank(w,x1,y1,x2,y2):
         auc - AUC loss
         gauc - AUC loss gradient
     '''
-    prod_1 = np.inner(x1 - x2,w)
+    prod = np.inner(x1 - x2,w)
 
-    birank = (1 - (y1-y2)*prod_1)**2  + mu/2*np.linalg.norm(w)
+    birank = (1 - (y1-y2)*prod)**2  + mu/2*np.linalg.norm(w)
 
     return birank
 
 def gBirank(w,x1,y1,x2,y2):
 
-    prod_1 = np.inner(x1 - x2, w)
+    prod = np.inner(x1 - x2, w)
 
-    gBirank = 2*((y1-y2)*prod_1-1) * (y1-y2) * (x1-x2) + mu*w
+    gBirank = 2*((y1-y2)*prod-1) * (y1-y2) * (x1-x2) + mu*w
 
     return gBirank
 
