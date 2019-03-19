@@ -93,58 +93,6 @@ def pairer(loss,w,x,y):
 
     return er
 
-if __name__ == '__main__':
-
-    # Read data
-    dataset = 'fourclass'
-    hf = h5py.File('/Users/yangzhenhuan/PycharmProjects/Pairwise/datasets/%s.h5' % (dataset), 'r')
-    FEATURES = hf['FEATURES'][:]
-    LABELS = hf['LABELS'][:]
-    hf.close()
-
-    # Define hyper-parameters
-    epochs = 2
-    N,d = FEATURES.shape
-
-    # Define parameters
-    mu = 1
-    R = np.sqrt(2/mu)
-    eta = .01
-
-    # Run SGD with fixed permutation among epoch
-    w = np.zeros(d)
-    for i in range(2,epochs*N):
-        for t in range(i):
-            w -= eta / (i-1) * gAUC(w,FEATURES[i%N],LABELS[i%N],FEATURES[t%N],LABELS[t%N])
-            norm = np.linalg.norm(w)
-            if norm > R:
-                w = w / norm * R
-
-        if i % 100 == 0:
-            er = pairer(AUC, w, FEATURES, LABELS)
-            print(w)
-            print('iteration: %d empirical risk: %f' %(i,er))
-            
-            def Birank(w,x1,y1,x2,y2):
-
-    '''
-    AUC loss
-    Input:
-        w - scoring function
-        x1 -
-        y1 -
-        x2 -
-        y2 -
-    Output:
-        auc - AUC loss
-        gauc - AUC loss gradient
-    '''
-    prod_1 = np.inner(x1 - x2,w)
-
-    birank = (1 - (y1-y2)*prod_1)**2  + mu/2*np.linalg.norm(w)
-
-    return birank
-
 # wei 
 def Birank(w,x1,y1,x2,y2):
 
@@ -190,24 +138,38 @@ if __name__ == '__main__':
     # Define parameters
     mu = 1
     R = np.sqrt(2/mu)
+    eta = .01
+
+    # Run SGD with fixed permutation among epoch
+    aucw = np.zeros(d)
+    for i in range(2,epochs*N):
+        for t in range(i):
+            aucw -= eta / (i-1) * gAUC(aucw,FEATURES[i%N],LABELS[i%N],FEATURES[t%N],LABELS[t%N])
+            norm = np.linalg.norm(aucw)
+            if norm > R:
+                aucw = aucw / norm * R
+
+        if i % 100 == 0:
+            aucer = pairer(AUC, aucw, FEATURES, LABELS)
+            print('iteration: %d empirical risk: %f' %(i,aucer))
+          
     
     # Run SGD for BIRANK with random selection among all epoches (varying step sizes)
-    w = np.zeros(d)
-    barw = w
-    neyo = [np.random.randint(N)]
+    barw = np.zeros(d)
+    randslt = [np.random.randint(N)]
     for i in range(2,epochs*N):
         ind = np.random.randint(N)
         eta = 0.1 / (i-1)
         for t in neyo:
-            w -= eta / (i-1) * gBirank(w,FEATURES[ind],LABELS[ind],FEATURES[t],LABELS[t])
-            norm = np.linalg.norm(w)
+            barw -= eta / (i-1) * gBirank(barw,FEATURES[ind],LABELS[ind],FEATURES[t],LABELS[t])
+            norm = np.linalg.norm(barw)
         if norm > R:
-            w = w / norm * R
+            barw = barw / norm * R
             
         #barw = ((i-1)*barw + w ) / i
         
         if i % 100 == 0:
-            er = pairer(Birank, w, FEATURES, LABELS)
-            print(w)
-            print('iteration: %d empirical risk: %f' %(i,er))
-        neyo.append(ind)
+            barer = pairer(Birank, barw, FEATURES, LABELS)
+            print('iteration: %d empirical risk: %f' %(i,barer))
+            
+        randslt.append(ind)
