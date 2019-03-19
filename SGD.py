@@ -145,6 +145,26 @@ if __name__ == '__main__':
 
     return birank
 
+# wei 
+def Birank(w,x1,y1,x2,y2):
+
+    '''
+    AUC loss
+    Input:
+        w - scoring function
+        x1 -
+        y1 -
+        x2 -
+        y2 -
+    Output:
+        auc - AUC loss
+        gauc - AUC loss gradient
+    '''
+    prod_1 = np.inner(x1 - x2,w)
+
+    birank = (1 - (y1-y2)*prod_1)**2  + mu/2*np.linalg.norm(w)
+
+    return birank
 
 def gBirank(w,x1,y1,x2,y2):
 
