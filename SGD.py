@@ -193,3 +193,70 @@ if __name__ == '__main__':
             print(w)
             print('iteration: %d empirical risk: %f' %(i,er))
         neyo.append(ind)
+        
+        def Birank(w,x1,y1,x2,y2):
+
+    '''
+    AUC loss
+    Input:
+        w - scoring function
+        x1 -
+        y1 -
+        x2 -
+        y2 -
+    Output:
+        auc - AUC loss
+        gauc - AUC loss gradient
+    '''
+    prod_1 = np.inner(x1 - x2,w)
+
+    birank = (1 - (y1-y2)*prod_1)**2  + mu/2*np.linalg.norm(w)
+
+    return birank
+
+
+def gBirank(w,x1,y1,x2,y2):
+
+    prod_1 = np.inner(x1 - x2, w)
+
+    gBirank = 2*((y1-y2)*prod_1-1) * (y1-y2) * (x1-x2) + mu*w
+
+    return gBirank
+
+if __name__ == '__main__':
+
+    # Read data
+    dataset = 'fourclass'
+    hf = h5py.File('/Users/weishen/Desktop/%s.h5' % (dataset), 'r')
+    FEATURES = hf['FEATURES'][:]
+    LABELS = hf['LABELS'][:]
+    hf.close()
+
+    # Define hyper-parameters
+    epochs = 2
+    N,d = FEATURES.shape
+
+    # Define parameters
+    mu = 1
+    R = np.sqrt(2/mu)
+    
+    # Run SGD for BIRANK with random selection among all epoches (varying step sizes)
+    w = np.zeros(d)
+    barw = w
+    neyo = [np.random.randint(N)]
+    for i in range(2,epochs*N):
+        ind = np.random.randint(N)
+        eta = 0.1 / (i-1)
+        for t in neyo:
+            w -= eta / (i-1) * gBirank(w,FEATURES[ind],LABELS[ind],FEATURES[t],LABELS[t])
+            norm = np.linalg.norm(w)
+        if norm > R:
+            w = w / norm * R
+            
+        #barw = ((i-1)*barw + w ) / i
+        
+        if i % 100 == 0:
+            er = pairer(Birank, w, FEATURES, LABELS)
+            print(w)
+            print('iteration: %d empirical risk: %f' %(i,er))
+        neyo.append(ind)
