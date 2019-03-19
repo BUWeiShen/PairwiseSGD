@@ -65,7 +65,7 @@ def gAUC(w,x1,y1,x2,y2):
 
     prod = np.inner(x1 - x2, w)
 
-    gauc = 2*(1-prod) * (y1+1)//2 * (1-y2)//2 * (x1-x2) + mu*w
+    gauc = 2*(prod-1) * (y1+1)//2 * (1-y2)//2 * (x1-x2) + mu*w
 
     return gauc
 
