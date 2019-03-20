@@ -6,6 +6,7 @@ Author:
 
 import numpy as np
 import h5py
+import random
 from matplotlib import pyplot as plt
 
 def pairsgd(gloss,w,eta,x,y):
@@ -173,3 +174,38 @@ if __name__ == '__main__':
             print('iteration: %d empirical risk: %f' %(i,barer))
             
         randslt.append(ind)
+        
+        
+        if __name__ == '__main__':
+
+ 
+
+    
+
+    
+
+    # Run SGD with different random permutations among epochs
+    # first permutation
+    number_list = list(range(1,N+1))
+    random.shuffle(number_list)
+    # initial value
+    w = np.ones(d)
+    # first loop: epochs
+    for j in range(1,epochs+1):
+        # second loop: new example
+        for i in range(max(2,N*(j-1)+1),N*j+1):
+            # third loop: preview examples
+            for t in range(i):
+                eta = .1 / (i-1)
+                w -= eta / (i-1) * gAUC(w,FEATURES[number_list[i%N-1]-1],LABELS[number_list[i%N-1]-1],FEATURES[number_list[t%N-1]-1],LABELS[number_list[t%N-1]-1])
+
+            norm = np.linalg.norm(w)
+            if norm > R:
+                w = w / norm * R
+
+            if i % 500 == 0:
+                er = pairer(AUC, w, FEATURES, LABELS)
+                print(w)
+                print('iteration: %d empirical risk: %f' %(i,er))
+        # new permutation again after every epoch        
+        random.shuffle(number_list) 
