@@ -174,9 +174,6 @@ if __name__ == '__main__':
             print('iteration: %d empirical risk: %f' %(i,barer))
             
         randslt.append(ind)
-        
-        
-        if __name__ == '__main__':
 
  
 
