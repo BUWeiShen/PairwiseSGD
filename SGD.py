@@ -123,6 +123,23 @@ def gBirank(w,x1,y1,x2,y2):
 
     return gBirank
 
+
+def draw(ave_norm_diff):
+    '''
+    Plot Parameter Distance
+    '''
+    
+    plt.plot(range(len(ave_norm_diff)),ave_norm_diff,'--',label='average')
+    plt.xlabel('iterations')
+    plt.ylabel('average parameter distance')
+    plt.legend()
+    
+    return
+
+
+
+
+
 if __name__ == '__main__':
 
     # Read data
@@ -206,3 +223,91 @@ if __name__ == '__main__':
                 print('iteration: %d empirical risk: %f' %(i,er))
         # new permutation again after every epoch        
         random.shuffle(number_list) 
+
+        
+        
+    
+    #stability measure
+    # Read data 
+    dataset = 'fourclass'
+    hf = h5py.File('/Users/weishen/Desktop/%s.h5' % (dataset), 'r')
+    FEATURES_all = hf['FEATURES'][:]
+    LABELS_all = hf['LABELS'][:]
+    N,d = FEATURES_all.shape
+
+    # create S and S' which are different only in one position
+    delet = np.random.randint(N)
+    FEATURES_1 = list(FEATURES_all)
+    LABELS_1 = list(LABELS_all)
+    Delement_F = FEATURES_1[delet]
+    Delement_L = LABELS_1[delet]
+    del FEATURES_1[delet]
+    del LABELS_1[delet]
+
+    repla = np.random.randint(N-1)
+    FEATURES_2 = list(FEATURES_1)
+    LABELS_2 = list(LABELS_1)
+    FEATURES_2[repla] = Delement_F
+    LABELS_2[repla] =  Delement_L
+    
+    N = N-1
+    hf.close()
+
+    # Define hyper-parameters
+    epochs = 1
+    K = 10 
+    T = N-1+(epochs-1)*N
+    # Define parameters
+    #mu = 1
+    #R = np.sqrt(2/mu)
+    
+    mu=0
+    R = 100
+
+
+    
+
+    sum_norm_diff = np.zeros(T)
+    
+    # out-loop k for averaged measure
+    for k in range(1,K+1):
+        w_1 = np.zeros(d)
+        w_2 = np.zeros(d)
+        number_list = list(range(1,N+1))
+        random.shuffle(number_list)  
+        norm_diff = []
+        
+    
+    # Run SGD with random permutation among epoch
+        for j in range(1,epochs+1):
+            for i in range(max(2,N*(j-1)+1),N*j+1):
+                #for t in range(max(i-20,1),i):
+                for t in range(i):
+                    eta = 0.1 / (i-1)
+                    w_1 -= eta / (i-1) * gAUC(w_1,FEATURES_1[number_list[i%N-1]-1],LABELS_1[number_list[i%N-1]-1],FEATURES_1[number_list[t%N-1]-1],LABELS_1[number_list[t%N-1]-1])
+                    w_2 -= eta / (i-1) * gAUC(w_2,FEATURES_2[number_list[i%N-1]-1],LABELS_2[number_list[i%N-1]-1],FEATURES_2[number_list[t%N-1]-1],LABELS_2[number_list[t%N-1]-1])
+            
+                norm_1 = np.linalg.norm(w_1)
+                if norm_1 > R:
+                    w_1 = w_1 / norm_1 * R
+                
+                norm_2 = np.linalg.norm(w_2)
+                if norm_2 > R:
+                    w_2 = w_2 / norm_2 * R
+            
+                norm_diff.append(np.linalg.norm(w_1-w_2))
+                        
+
+                #if i % 100 == 0:
+                    #diff = np.linalg.norm(w_1-w_2)
+                    #print(diff)
+                    #er = pairer(AUC, w_1, FEATURES_all, LABELS_all)
+                    #print(norm_diff)
+                
+                    #print('iteration: %d empirical risk: %f' %(i,er))
+            # permutation again after every epoch        
+            random.shuffle(number_list)  
+        sum_norm_diff +=  np.array(norm_diff)
+    
+    ave_norm_diff = sum_norm_diff / K
+    draw(ave_norm_diff)
